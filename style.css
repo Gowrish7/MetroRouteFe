@@ -172,6 +172,43 @@ body {
   cursor: not-allowed;
 }
 
+.autocomplete-wrap { position: relative; }
+
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  z-index: 100;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px 0;
+}
+
+.autocomplete-item {
+  padding: 9px 14px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+  background: #f0e6f4;
+  color: var(--purple);
+}
+
+.autocomplete-item mark {
+  background: none;
+  color: var(--purple);
+  font-weight: 700;
+}
+
 .swap-btn-wrap {
   display: flex;
   align-items: center;

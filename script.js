@@ -2,7 +2,7 @@ const API_BASE = 'https://metroroute.onrender.com';
 
 const fromSelect       = document.getElementById('from-station');
 const toInput          = document.getElementById('to-station');
-const toDatalist       = document.getElementById('to-datalist');
+const toSuggestions    = document.getElementById('to-suggestions');
 const findBtn          = document.getElementById('find-route-btn');
 const swapBtn          = document.getElementById('swap-btn');
 const errorMsg         = document.getElementById('error-msg');
@@ -62,13 +62,6 @@ function populateDropdowns() {
     fromSelect.appendChild(group);
   });
 
-  // To — datalist for autocomplete (also accepts free text)
-  toDatalist.innerHTML = '';
-  [...allStationNames].sort((a, b) => a.localeCompare(b)).forEach(name => {
-    const opt = document.createElement('option');
-    opt.value = name;
-    toDatalist.appendChild(opt);
-  });
 }
 
 function enableControls() {
@@ -77,6 +70,83 @@ function enableControls() {
   findBtn.disabled    = false;
   swapBtn.disabled    = false;
 }
+
+/* ---- Autocomplete for "To" field ---- */
+let acActiveIdx = -1;
+
+function showSuggestions(query) {
+  const q = query.trim().toLowerCase();
+  toSuggestions.innerHTML = '';
+  acActiveIdx = -1;
+
+  if (!q) { toSuggestions.classList.add('hidden'); return; }
+
+  const matches = [...allStationNames]
+    .filter(n => n.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const aStarts = a.toLowerCase().startsWith(q);
+      const bStarts = b.toLowerCase().startsWith(q);
+      if (aStarts !== bStarts) return aStarts ? -1 : 1;
+      return a.localeCompare(b);
+    })
+    .slice(0, 10);
+
+  if (!matches.length) { toSuggestions.classList.add('hidden'); return; }
+
+  matches.forEach(name => {
+    const li = document.createElement('li');
+    li.className = 'autocomplete-item';
+    const idx = name.toLowerCase().indexOf(q);
+    li.innerHTML = name.slice(0, idx)
+      + `<mark>${name.slice(idx, idx + q.length)}</mark>`
+      + name.slice(idx + q.length);
+    li.addEventListener('mousedown', e => {
+      e.preventDefault();
+      toInput.value = name;
+      closeSuggestions();
+      clearError();
+    });
+    toSuggestions.appendChild(li);
+  });
+
+  toSuggestions.classList.remove('hidden');
+}
+
+function closeSuggestions() {
+  toSuggestions.classList.add('hidden');
+  acActiveIdx = -1;
+}
+
+toInput.addEventListener('input', () => showSuggestions(toInput.value));
+
+toInput.addEventListener('keydown', e => {
+  const items = toSuggestions.querySelectorAll('.autocomplete-item');
+  if (toSuggestions.classList.contains('hidden') || !items.length) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    acActiveIdx = Math.min(acActiveIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    acActiveIdx = Math.max(acActiveIdx - 1, -1);
+  } else if (e.key === 'Enter' && acActiveIdx >= 0) {
+    e.stopPropagation();
+    toInput.value = items[acActiveIdx].textContent;
+    closeSuggestions();
+    clearError();
+    return;
+  } else if (e.key === 'Escape') {
+    closeSuggestions();
+    return;
+  } else {
+    return;
+  }
+
+  items.forEach((el, i) => el.classList.toggle('active', i === acActiveIdx));
+  if (acActiveIdx >= 0) items[acActiveIdx].scrollIntoView({ block: 'nearest' });
+});
+
+toInput.addEventListener('blur', () => setTimeout(closeSuggestions, 150));
 
 /* ---- Swap (only if To is also a metro station) ---- */
 swapBtn.addEventListener('click', () => {

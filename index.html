@@ -46,11 +46,13 @@
 
         <div class="form-group">
           <label for="to-station" class="form-label">To (station or any place)</label>
-          <input type="text" id="to-station" class="text-input"
-                 list="to-datalist"
-                 placeholder="e.g. MG Road or ISKCON..."
-                 disabled />
-          <datalist id="to-datalist"></datalist>
+          <div class="autocomplete-wrap">
+            <input type="text" id="to-station" class="text-input"
+                   placeholder="e.g. Banashankari or ISKCON..."
+                   autocomplete="off"
+                   disabled />
+            <ul id="to-suggestions" class="autocomplete-list hidden"></ul>
+          </div>
         </div>
       </div>
 
